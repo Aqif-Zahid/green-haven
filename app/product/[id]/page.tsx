@@ -3,6 +3,7 @@ import { BuyButton } from "@/app/components/SubmitButtons";
 import prisma from "@/app/lib/db";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Image from "next/image";
+import { unstable_noStore as noStore } from "next/cache";
 
 async function getData(id: string) {
     const data = await prisma.product.findUnique({
@@ -29,10 +30,9 @@ async function getData(id: string) {
     return data;
 }
 
-export type tParams = Promise<{ id: string[] }>;
-
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params; // Await the params promise
+    noStore();
     const data = await getData(id);
     return (
         <section className="max-w-7xl mx-auto  px-4 pg:px-8 lg:grid lg:grid-rows-1 lg:grid-cols-7 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">

@@ -29,9 +29,11 @@ async function getData(id: string) {
     return data;
 }
 
+export type tParams = Promise<{ id: string[] }>;
 
-export default async function ProductPage({params}: {params: {id: string};}) {
-    const data = await getData(params.id);
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params; // Await the params promise
+    const data = await getData(id);
     return (
         <section className="max-w-7xl mx-auto  px-4 pg:px-8 lg:grid lg:grid-rows-1 lg:grid-cols-7 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
             <Carousel className="lg:row-end-1 lg:col-span-4">

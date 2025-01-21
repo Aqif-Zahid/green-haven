@@ -44,8 +44,9 @@ async function getData(category: string) {
 
 
 
-export default async function CategoryPage({params}: {params: {category: string};}) {
-    const data = await getData(params.category)
+export default async function CategoryPage({ params }: { params: Promise<{ category: string }> }) {
+    const { category } = await params; // Await the params promise
+    const data = await getData(category);
     return (
         <section className="max-w-7xl mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 sm:grid-cols-2 gap-10 mt-4">

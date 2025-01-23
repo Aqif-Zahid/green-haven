@@ -183,3 +183,24 @@ export async function CreateStripeAccountLink() {
 
     return redirect(accountLink.url);
 }
+
+export async function authenticateAdmin(email: string, password: string): Promise<boolean> {
+    try {
+      if (!email || !password) {
+        throw new Error('Email and password are required');
+      }
+  
+      const admin = await prisma.admin.findUnique({
+        where: { email },
+      });
+  
+      if (admin && admin.password === password) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('Error authenticating admin:', error);
+      return false;
+    }
+  }

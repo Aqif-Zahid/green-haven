@@ -39,3 +39,9 @@ enum CategoryTypes {
   accessories
   flowers
 }
+
+model admin {
+  id String @id @unique
+  email String @unique
+  password String
+}

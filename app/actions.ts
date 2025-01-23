@@ -183,4 +183,3 @@ export async function CreateStripeAccountLink() {
 
     return redirect(accountLink.url);
 }
-    

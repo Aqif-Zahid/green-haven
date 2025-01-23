@@ -24,7 +24,7 @@ async function getData({category}: iAppProps) {
                     id: true,
                     images: true,
                 },
-                take: 3,
+                take: 4,
             });
             return {
                 data: data,
@@ -44,7 +44,7 @@ async function getData({category}: iAppProps) {
                 orderBy: {
                     createdAt: "desc"
                 },
-                take: 3,
+                take: 4,
             });
             return {
                 data: data,
@@ -64,7 +64,7 @@ async function getData({category}: iAppProps) {
                     smallDescription: true,
                     images: true,
                 },
-                take: 3,
+                take: 4,
             });
             return {
                 data: data,
@@ -84,7 +84,7 @@ async function getData({category}: iAppProps) {
                     id: true,
                     images: true,
                 },
-                take: 3,
+                take: 4,
             });
             return {
                 data: data,

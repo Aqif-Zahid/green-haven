@@ -20,6 +20,7 @@ const productSchema = z.object({
     price: z.number().min(1, {message: "The Price has to be higher than 1"}),
     smallDescription: z.string().min(5, {message: "Description is required"}),
     images: z.array(z.string(), {message: "At least one image is required"}),
+    quantity: z.number().min(1, {message: "The quantity has to be higher than 1"})
 
 });
 
@@ -44,6 +45,7 @@ export async function SellProduct(prevState: any, formData: FormData) {
         smallDescription: formData.get("smallDescription"),
         description: formData.get("description"),
         images: JSON.parse(formData.get("images") as string),
+        quantity: Number(formData.get("quantity")),
     });
 
 
@@ -56,6 +58,15 @@ export async function SellProduct(prevState: any, formData: FormData) {
 
         return state;
     }
+    
+    if (validateFields.data.quantity <= 0) {
+        const state: State = {
+          status: "error",
+          message: "Quantity must be greater than 0",
+        };
+    
+        return state;
+      }
 
     await prisma.product.create({
         data: {
@@ -65,7 +76,8 @@ export async function SellProduct(prevState: any, formData: FormData) {
             price: validateFields.data.price,
             images: validateFields.data.images,
             sellerID: user.id,
-            description: validateFields.data.smallDescription
+            description: validateFields.data.smallDescription,
+            quantity: validateFields.data.quantity,
         },
 
     })
@@ -113,45 +125,85 @@ export async function UpdateUserSettings(prevState: any, formData: FormData) {
 }
 
 export async function BuyProduct(formData: FormData) {
-    const id = formData.get('id') as string;
-    const data = await prisma.product.findUnique({
-        where: {
-            id: id,
-        },
-        select: {
-            name: true,
-            smallDescription: true,
-            price: true,
-            images: true,
-        },
+    const productId = formData.get('id') as string;
+    const quantity = parseInt(formData.get('quantity') as string, 10);
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+  
+    if (!productId || isNaN(quantity) || quantity <= 0) {
+      throw new Error('Invalid product or quantity');
+    }
+  
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        images: true,
+        quantity: true,
+      },
     });
-
-    const session = await stripe.checkout.sessions.create({
-        mode: 'payment',
-        line_items: [
+  
+    if (!product) {
+      throw new Error('Product not found');
+    }
+  
+    if (product.quantity < quantity) {
+      throw new Error('Not enough quantity available');
+    }
+  
+    const totalPrice = product.price * quantity;
+  
+    const order = await prisma.order.create({
+      data: {
+        userId: user.id, 
+        totalAmount: totalPrice,
+        items: {
+          create: [
             {
-                price_data: {
-                    currency: "usd",
-                    unit_amount: Math.round((data?.price as number) * 100 / 120),
-                    product_data: {
-                        name: data?.name as string,
-                        description: data?.smallDescription,
-                        images: data?.images,
-                    }
-                },
-                quantity: 1,
-            }
-        ],
-        success_url: process.env.NODE_ENV === "development" 
-        ? 'http://localhost:3000/payment/success' 
-        : "https://green-haven-nu.vercel.app/payment/success",
-        cancel_url: process.env.NODE_ENV === "development" 
-        ? 'http://localhost:3000/payment/cancel' 
-        : "https://green-haven-nu.vercel.app/payment/cancel",
+              productId: product.id,
+              quantity: quantity,
+              totalPrice: totalPrice,
+            },
+          ],
+        },
+      },
+      include: {
+        items: true,
+      },
     });
-
+  
+    await prisma.product.update({
+      where: { id: product.id },
+      data: { quantity: product.quantity - quantity },
+    });
+  
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            unit_amount: Math.round((product.price * 100) / 120),
+            product_data: {
+              name: product.name,
+              images: product.images,
+            },
+          },
+          quantity: quantity,
+        },
+      ],
+      success_url: process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000/payment/success'
+        : 'https://green-haven-nu.vercel.app/payment/success',
+      cancel_url: process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000/payment/cancel'
+        : 'https://green-haven-nu.vercel.app/payment/cancel',
+    });
+  
     return redirect(session.url as string);
-}
+  }
 
 export async function CreateStripeAccountLink() {
     const {getUser} = getKindeServerSession()

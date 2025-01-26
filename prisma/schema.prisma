@@ -18,13 +18,15 @@ model User {
   stripeConnectedLinked Boolean @default(false)
 
   product Product[]
+  orders Order[]
 
 }
 
 model Product {
   id String @id @default(uuid())
   name String
-  price Int
+  price Float
+  quantity Int
   smallDescription String
   description Json
   images String[]
@@ -32,6 +34,8 @@ model Product {
   category CategoryTypes
   sellerID String
   user User @relation(fields: [sellerID], references: [id])
+
+  orderItems OrderItem[]
 }
 
 enum CategoryTypes {
@@ -43,4 +47,24 @@ enum CategoryTypes {
 model admin {
   email String @id @unique
   password String
+}
+
+model Order {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  totalAmount Float
+  createdAt DateTime @default(now())
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+  orderId String
+  productId String
+  quantity Int
+  totalPrice Float
+  order Order @relation(fields: [orderId], references: [id]) 
+  product Product @relation(fields: [productId], references: [id])
 }

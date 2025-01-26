@@ -19,6 +19,7 @@ async function getData(id: string) {
             price: true,
             createdAt: true,
             id: true,
+            quantity: true,
             user: {
                 select: {
                     profileImage: true,
@@ -31,7 +32,7 @@ async function getData(id: string) {
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params; // Await the params promise
+    const { id } = await params;
     noStore();
     const data = await getData(id);
     return (
@@ -39,31 +40,52 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <Carousel className="lg:row-end-1 lg:col-span-4">
                 <CarouselContent>
                     {data?.images.map((item, index) => (
-                       <CarouselItem key={index}>
-                        <div className="aspect-w-4 aspect-h-3 rounded-lg bg-gray-100 overflow-hidden">
-                            <Image src={item as string} alt="Product image" fill className="object-cover w-full h-full rounded-lg" />
-                        </div>
-                       </CarouselItem> 
+                        <CarouselItem key={index}>
+                            <div className="aspect-w-4 aspect-h-3 rounded-lg bg-gray-100 overflow-hidden">
+                                <Image src={item as string} alt="Product image" fill className="object-cover w-full h-full rounded-lg" />
+                            </div>
+                        </CarouselItem>
                     ))}
                 </CarouselContent>
                 <CarouselPrevious className="ml-16" />
                 <CarouselNext className="mr-16" />
             </Carousel>
             <div className="max-w-2xl mx-auto mt-5 lg:max-w-none lg:mt-0 lg:row-end-2 lg:row-span-2 lg:col-span-3">
-                <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">{data?.name}  
+                <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
+                    {data?.name}
                 </h1>
                 <p className="mt-2 text-muted-foreground">{data?.smallDescription}</p>
-                <form action={BuyProduct}>
+                
+                <form action={BuyProduct} className="mt-4">
                     <input type="hidden" name="id" value={data?.id} />
-                <BuyButton price={data?.price as number}/>
+                    <div className="flex items-center gap-4">
+                        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                            Quantity to Buy:
+                        </label>
+                        <input
+                            type="number"
+                            id="quantity"
+                            name="quantity"
+                            placeholder="1"
+                            min="1"
+                            max={data?.quantity}
+                            required
+                            className="w-20 p-2 border rounded-md"
+                        />
+                    </div>
+                    <p className="mt-2 text-sm text-gray-600">
+                        Remaining Quantity: <strong>{data?.quantity}</strong>
+                    </p>
+                    <BuyButton price={data?.price as number} />
                 </form>
 
                 <div className="border-t border-gray-200 my-10">
                     <div className="grid grid-cols-2 w-full gap-y-3">
                         <h3 className="text-sm font-medium text-muted-foreground col-span-1">Released:</h3>
-                        <h3 className="text-sm font-medium col-span-1">{new Intl.DateTimeFormat("en-US", {
-                            dateStyle: "long",
-                        }).format(data?.createdAt)}
+                        <h3 className="text-sm font-medium col-span-1">
+                            {new Intl.DateTimeFormat("en-US", {
+                                dateStyle: "long",
+                            }).format(data?.createdAt)}
                         </h3>
                         <h3 className="text-sm font-medium text-muted-foreground col-span-1">Category:</h3>
                         <h3 className="text-sm font-medium col-span-1">{data?.category}</h3>
@@ -75,7 +97,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 <p>{data?.description?.toString()}</p>
             </div>
         </section>
-    )
+    );
 }
 
 

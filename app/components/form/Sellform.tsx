@@ -76,6 +76,19 @@ export function SellForm() {
 
                         </div>
                         <div className="flex flex-col gap-y-2">
+                            <Label>Quantity</Label>
+                            <Input
+                            placeholder = "0"
+                            type="number"
+                            name="quantity"
+                            required
+                            min={1}
+                            />
+                            {state?.errors?.["quantity"]?.[0] && (
+                                <p className="text-red-500">{state?.errors?.["quantity"]?.[0]}</p>
+                            )}
+                        </div>
+                        <div className="flex flex-col gap-y-2">
                             <Label>Summary of the Product</Label>
                             <Textarea 
                             name="smallDescription" 
@@ -87,7 +100,6 @@ export function SellForm() {
                                 <p className="text-red-500">{state?.errors?.["smallDescription"]?.[0]}</p>
                             )}
                         </div>
-
                         <div className= "flex flex-col gap-y-2">
                             <input 
                             type="hidden" 

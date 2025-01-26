@@ -41,7 +41,6 @@ enum CategoryTypes {
 }
 
 model admin {
-  id String @id @unique
-  email String @unique
+  email String @id @unique
   password String
 }

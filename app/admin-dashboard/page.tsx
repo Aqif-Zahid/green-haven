@@ -1,4 +1,5 @@
 import prisma from '../lib/db';
+import AddAdminButton from './AddAdminButton';
 import ProductRow from './ProductRow'; // Import the client component
 
 interface Product {
@@ -19,6 +20,9 @@ export default async function AdminDashboard() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
+      <div className="mb-4">
+        <AddAdminButton />
+      </div>
       <table className="table-auto w-full border-collapse border border-gray-200">
         <thead>
           <tr>

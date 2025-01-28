@@ -58,10 +58,8 @@ export function UserNav({ email, name, userImage }: iAppProps) {
                     <DropdownMenuItem asChild><Link href="/sell">Sell your Product</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link href="my-products">My Products</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/billing">Billing</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <button onClick={() => setShowAdminPrompt(true)}>Admin mode</button>
-                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/my-orders">My Orders</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><button onClick={() => setShowAdminPrompt(true)}>Admin mode</button></DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>

@@ -55,8 +55,15 @@ model Order {
   user User @relation(fields: [userId], references: [id])
   totalAmount Float
   createdAt DateTime @default(now())
+  deliveryAddress String 
+  status          OrderStatus @default(PENDING) 
 
   items OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  DELIVERED
 }
 
 model OrderItem {

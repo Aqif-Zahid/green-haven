@@ -125,89 +125,64 @@ export async function UpdateUserSettings(prevState: any, formData: FormData) {
 }
 
 export async function BuyProduct(formData: FormData) {
-    const productId = formData.get('id') as string;
-    const quantity = parseInt(formData.get('quantity') as string, 10);
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
-  
-    if (!productId || isNaN(quantity) || quantity <= 0) {
-      throw new Error('Invalid product or quantity');
-    }
+  const productId = formData.get('id') as string;
+  const quantity = parseInt(formData.get('quantity') as string, 10);
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
 
-    if (!user) {
-      return redirect(process.env.KINDE_LOGIN_URL as string);
-    }
-  
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-      select: {
-        id: true,
-        name: true,
-        price: true,
-        images: true,
-        quantity: true,
-      },
-    });
-  
-    if (!product) {
-      throw new Error('Product not found');
-    }
-  
-    if (product.quantity < quantity) {
-      throw new Error('Not enough quantity available');
-    }
-  
-    const totalPrice = product.price * quantity;
-  
-    const order = await prisma.order.create({
-      data: {
-        userId: user.id, 
-        totalAmount: totalPrice,
-        items: {
-          create: [
-            {
-              productId: product.id,
-              quantity: quantity,
-              totalPrice: totalPrice,
-            },
-          ],
-        },
-      },
-      include: {
-        items: true,
-      },
-    });
-  
-    await prisma.product.update({
-      where: { id: product.id },
-      data: { quantity: product.quantity - quantity },
-    });
-  
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            unit_amount: Math.round((product.price * 100) / 120),
-            product_data: {
-              name: product.name,
-              images: product.images,
-            },
-          },
-          quantity: quantity,
-        },
-      ],
-      success_url: process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000/payment/success'
-        : 'https://green-haven-nu.vercel.app/payment/success',
-      cancel_url: process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000/payment/cancel'
-        : 'https://green-haven-nu.vercel.app/payment/cancel',
-    });
-  
-    return redirect(session.url as string);
+  if (!productId || isNaN(quantity) || quantity <= 0) {
+    throw new Error('Invalid product or quantity');
   }
+
+  if (!user) {
+    return redirect(process.env.KINDE_LOGIN_URL as string);
+  }
+
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      images: true,
+      quantity: true,
+    },
+  });
+
+  if (!product) {
+    throw new Error('Product not found');
+  }
+
+  if (product.quantity < quantity) {
+    throw new Error('Not enough quantity available');
+  }
+
+  const totalPrice = product.price * quantity;
+
+  const order = await prisma.order.create({
+    data: {
+      userId: user.id,
+      totalAmount: totalPrice,
+      deliveryAddress: '',
+      items: {
+        create: [
+          {
+            productId: product.id,
+            quantity: quantity,
+            totalPrice: totalPrice,
+          },
+        ],
+      },
+    },
+    include: {
+      items: true,
+    },
+  });
+
+  return redirect(`/checkout/${order.id}`);
+}
+
+
 
 export async function CreateStripeAccountLink() {
     const {getUser} = getKindeServerSession()
@@ -259,4 +234,22 @@ export async function authenticateAdmin(email: string, password: string): Promis
       console.error('Error authenticating admin:', error);
       return false;
     }
+  }
+
+  export async function getUserOrders(userId: string) {
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: true, 
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  
+    return orders;
   }

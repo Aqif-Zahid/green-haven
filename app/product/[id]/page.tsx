@@ -28,6 +28,9 @@ async function getData(id: string) {
             },
         },
     });
+
+    
+
     return data;
 }
 
@@ -35,8 +38,18 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     const { id } = await params;
     noStore();
     const data = await getData(id);
+
+    if (!data) {
+        return (
+            <section className="max-w-7xl mx-auto px-4 py-8">
+                <h1 className="text-2xl font-bold">Product Not Found</h1>
+                <p>The product you are looking for is no longer available.</p>
+            </section>
+        );
+    }
+
     return (
-        <section className="max-w-7xl mx-auto  px-4 pg:px-8 lg:grid lg:grid-rows-1 lg:grid-cols-7 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
+        <section className="max-w-7xl mx-auto px-4 pg:px-8 lg:grid lg:grid-rows-1 lg:grid-cols-7 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
             <Carousel className="lg:row-end-1 lg:col-span-4">
                 <CarouselContent>
                     {data?.images.map((item, index) => (
@@ -56,28 +69,39 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 </h1>
                 <p className="mt-2 text-muted-foreground">{data?.smallDescription}</p>
                 
-                <form action={BuyProduct} className="mt-4">
-                    <input type="hidden" name="id" value={data?.id} />
-                    <div className="flex items-center gap-4">
-                        <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                            Quantity to Buy:
-                        </label>
-                        <input
-                            type="number"
-                            id="quantity"
-                            name="quantity"
-                            placeholder="1"
-                            min="1"
-                            max={data?.quantity}
-                            required
-                            className="w-20 p-2 border rounded-md"
-                        />
+                {data?.quantity > 0 ? (
+                    <form action={BuyProduct} className="mt-4">
+                        <input type="hidden" name="id" value={data?.id} />
+                        <div className="flex items-center gap-4">
+                            <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                                Quantity to Buy:
+                            </label>
+                            <input
+                                type="number"
+                                id="quantity"
+                                name="quantity"
+                                placeholder="1"
+                                min="1"
+                                max={data?.quantity}
+                                required
+                                className="w-20 p-2 border rounded-md"
+                            />
+                        </div>
+                        <p className="mt-2 text-sm text-gray-600">
+                            Remaining Quantity: <strong>{data?.quantity}</strong>
+                        </p>
+                        <BuyButton price={data?.price as number} />
+                    </form>
+                ) : (
+                    <div className="mt-4">
+                        <button
+                            disabled
+                            className="w-full py-2 px-4 bg-gray-400 text-white font-bold rounded cursor-not-allowed"
+                        >
+                            Out of Stock
+                        </button>
                     </div>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Remaining Quantity: <strong>{data?.quantity}</strong>
-                    </p>
-                    <BuyButton price={data?.price as number} />
-                </form>
+                )}
 
                 <div className="border-t border-gray-200 my-10">
                     <div className="grid grid-cols-2 w-full gap-y-3">
@@ -99,12 +123,3 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         </section>
     );
 }
-
-
-
-/** put this line of code in line 69 instead of
- * <p>{data?.description?.toString()}</p> 
- * after description not getting saved
- * in database issue is fixed:  
- * <ProductDescription content={data?.description as JSONContent} />
- */

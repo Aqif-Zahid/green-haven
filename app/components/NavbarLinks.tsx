@@ -62,7 +62,7 @@ export function NavbarLinks() {
                         href={item.href}
                         onClick={(e) => {
                             if (item.submenu) {
-                                e.preventDefault(); // Prevent navigation for parent item
+                                e.preventDefault();
                                 setDropdownOpen((prev) => !prev);
                             }
                         }}

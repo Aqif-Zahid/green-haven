@@ -133,6 +133,10 @@ export async function BuyProduct(formData: FormData) {
     if (!productId || isNaN(quantity) || quantity <= 0) {
       throw new Error('Invalid product or quantity');
     }
+
+    if (!user) {
+      return redirect(process.env.KINDE_LOGIN_URL as string);
+    }
   
     const product = await prisma.product.findUnique({
       where: { id: productId },
